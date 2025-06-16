@@ -1,0 +1,1086 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>캐릭터 선택</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+        body, html {
+            overflow: hidden;
+        }
+        .start {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: #6B9839;
+            z-index: 9999; /* 다른 모든 요소보다 위에 있도록 설정 */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            /* hide 클래스와 동일한 전환 효과를 줍니다. */
+            transition: opacity 1s ease-in-out, visibility 1s ease-in-out; 
+        }
+        .start img {
+            width: 100%;
+            height: 100vh;
+            object-fit: cover; /* 이미지가 찌그러지지 않고 꽉 차도록 설정 */
+        }
+        .body-bg {
+            background: rgb(207, 207, 207);
+            transition: background-color 1s ease-in-out, background-image 1s ease-in-out;
+            width: 100%;
+            height: 100vh;
+        }
+        .body1, .body2 {
+            background: black;
+        }
+        .character-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 800px;
+            margin: auto;
+        }
+        .character-container > h2 {
+            padding: 20px;
+            font-weight: bold;
+        }
+        .character-list {
+            display: flex;
+            list-style: none;
+        }
+        .character-list li.select {
+            border: 3px solid darkred;
+            transform: scale(1.05);
+        }
+        .dog, .cow, .bird {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin: 30px;
+            padding: 10px;
+            width: 300px;
+            height: 500px;
+            border: 1px solid black;
+            border-radius: 15px;
+            background: white;
+            cursor: pointer;
+            transition: transform 0.6s ease, background-color 0.3s ease;
+            transform-style: preserve-3d;
+        }
+        .dog:hover, .cow:hover, .bird:hover {
+            background-color: #666666;
+            transform: rotateY(180deg);
+        }
+        button {
+            background: #000;
+            color: #fff;
+            padding: 8px 24px;
+            cursor: pointer;
+        }
+        button:hover {
+            padding: 8px 24px;
+            background: #666666;
+        }
+        .hide {
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 1s ease-in-out, visibility 1s ease-in-out;
+        }
+        .active {
+            display: flex;
+        }
+        .imgdog, .imgcow, .imgbird {
+            width: 50%;
+            margin-bottom: 15px;
+            border-radius: 15px;
+            box-sizing: border-box;
+            transition: width 0.3s ease;
+        }
+        .imgdog:hover, .imgcow:hover, .imgbird:hover {
+            width: 70%;
+        }
+        .story, .story1, .story2, .story3, .story4, .story5, .story6 {
+            display: flex;
+            background-color: rgba(0, 0, 0, 0.4);
+            width: 100%;
+            height: 30%;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            padding: 30px;
+            box-sizing: border-box;
+            z-index: 999;
+            cursor: pointer;
+        }
+
+        .Butterfly {
+            display: none;
+            position: fixed;
+            top: 120px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 150px;
+            height: auto;
+            z-index: 1000;
+            filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.6))
+                    drop-shadow(0 0 20px rgba(255, 255, 255, 0.4))
+                    drop-shadow(0 0 30px rgba(255, 255, 255, 0.2));
+        }
+        .Butterfly.active {
+            display: block;
+            animation: flyUp 1s ease-out forwards;
+        }
+        .Butterfly.hide {
+            display: none;
+        }
+        @keyframes flyUp {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+        @keyframes flyAway {
+            0% { transform: translateX(-50%) translateY(0) scale(1) rotate(0deg); }
+            25% { transform: translateX(-100px) translateY(-30px) scale(1.3) rotate(10deg); }
+            50% { transform: translateX(-300px) translateY(20px) scale(1) rotate(-5deg); }
+            75% { transform: translateX(-600px) translateY(-40px) scale(1.8) rotate(15deg); }
+            100% { transform: translateX(-900px) translateY(0px) scale(1.4) rotate(0deg); opacity: 50; }
+        }
+
+        @keyframes shake {
+            0%   { transform: translate(0px, -15px); }
+            20%  { transform: translate(-5px, -15px); }
+            40%  { transform: translate(5px, -15px); }
+            60%  { transform: translate(-5px, -15px); }
+            80%  { transform: translate(5px, -15px); }
+            100% { transform: translate(0px, -15px); }
+        }
+
+        .shake {
+            animation: shake 0.4s ease-in-out;
+        }
+
+        .effect2 {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            background-color: transparent;
+            box-sizing: border-box;
+            z-index: 500;
+        }
+        .effect3 {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: rgba(0, 0, 0);
+            -webkit-mask: radial-gradient(circle 100px at center, transparent 0, black 100px);
+            mask: radial-gradient(circle 100px at center, transparent 0, black 100px);
+            pointer-events: none;
+            z-index: 500;
+        }
+        .effect6 {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: rgb(0, 0, 0);
+            display: none;
+
+            /* 애니메이션 적용 */
+            animation-name: fadeInOutIn;
+            animation-duration: 4s;
+            animation-timing-function: ease-in-out;
+            animation-fill-mode: forwards;
+        }
+        @keyframes fadeInOutIn {
+            0% {
+                opacity: 0;
+            }
+            20% {
+                opacity: 1;
+            }
+            40% {
+                opacity: 0.3;
+            }
+            60% {
+                opacity: 1;
+            }
+            80% {
+                opacity: 0.5;
+            }
+            100% {
+                opacity: 1;
+            }
+        }
+        .game {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            width: 100vw;
+            min-height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1000;
+        }
+        .game.active {
+            display: flex;
+        }
+
+        /* 통일된 게임 UI 스타일 */
+        .game1, .game2, .game3, .success1, .fail1, .success2, .fail2, .success3, .fail3 {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background-color: rgb(0, 0, 0);
+            color: #ffffff;
+            width: 700px;
+            height: 500px;
+            font-size: 32px;
+            text-align: center;
+            padding-bottom: 50px;
+            z-index: 1001;
+            border-radius: 15px;
+            cursor: pointer;
+        }
+        /* 통일된 active 스타일 */
+        .game1.active, .game2.active, .game3.active, .success1.active, .fail1.active, .success2.active, .fail2.active, .success3.active, .fail3.active {
+            display: flex;
+        }
+
+        .game3 { flex-direction: column; }
+        .arrow-sequence {
+            display: flex;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .arrow-box {
+            width: 60px;
+            height: 60px;
+            font-size: 28px;
+            border: 2px solid white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        p {
+            font-size: 24px;
+            font-family: pretendard, sans-serif;
+            color: white;
+        }
+        .character-list p {
+            color: black;
+            margin-top: 10px;
+        }
+        .arrow-indicator {
+            font-size: 24px;
+            margin: 20px 0;
+            color: #eee;
+        }
+        .arrow-indicator span {
+            font-size: 32px;
+            font-weight: bold;
+            color: #ffffff;
+            padding: 0 10px;
+        }
+        .count-display {
+            font-size: 28px;
+        }
+        #arrow-count {
+            font-weight: bold;
+            color: #ffffff;
+        }
+        .timer-container {
+            width: 80%;
+            height: 25px;
+            background-color: #333;
+            border-radius: 15px;
+            margin-top: 30px;
+            border: 2px solid #555;
+            overflow: hidden;
+        }
+        .timer-bar {
+            height: 100%;
+            width: 100%;
+            background-color: #f44336;
+            border-radius: 15px;
+        }
+        .timer-bar.running-10s {
+            animation: depleteTimer 10s linear forwards;
+        }
+        .timer-bar.running-8s {
+            animation: depleteTimer 8s linear forwards;
+        }
+        @keyframes depleteTimer {
+            from {
+                width: 100%;
+                background-color: #4caf50;
+            }
+            to {
+                width: 0%;
+                background-color: #f44336;
+            }
+        }
+        .Endding {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 2000;
+
+            overflow: hidden; /* 컨테이너를 벗어나는 텍스트를 숨김 */
+            -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 25%, black 75%, transparent 100%);
+            mask-image: linear-gradient(to bottom, transparent 0%, black 25%, black 75%, transparent 100%);
+        }
+        .Text {
+            text-align: center;
+            transform: translateY(130vh);
+            animation: slideUp 20s 5s ease-in forwards;
+            
+        }
+        .credit {
+            font-size: 24px;
+            margin-bottom: 50px;
+        }
+        @keyframes slideUp {
+            from {
+                transform: translateY(130vh);
+            }
+            to {
+                transform: translateY(-130%);
+            }
+        }
+    </style>
+</head>
+<body class="body-bg">
+    <section class="start">
+        <div>
+            <img src="https://i.pinimg.com/736x/4f/11/85/4f11852ee470acbbbb66a3e883771d78.jpg" alt="">
+        </div>
+    </section>
+    <section class="choice-screen">
+        <div class="character-container">
+            <h2>원하는 동물을 선택해주세요</h2>
+            <ul class="character-list">
+                <li class="dog">
+                    <img src="https://i.pinimg.com/736x/a3/f3/ba/a3f3ba224c4b8ebde4646dce756861d1.jpg" alt="강아지" class="imgdog">
+                    <p>강아지</p>
+                </li>
+                <li class="cow">
+                    <img src="https://i.pinimg.com/736x/59/09/81/59098119849ad4c90be112c0db12d37c.jpg" alt="소" class="imgcow">
+                    <p>소</p>
+                </li>
+                <li class="bird">
+                    <img src="https://i.pinimg.com/736x/ff/4a/7f/ff4a7fe7b22caa9531e38eb544e435ef.jpg" alt="새" class="imgbird">
+                    <p>새</p>
+                </li>
+            </ul>
+            <button class="go-btn">시작하기</button>
+        </div>
+    </section>
+
+    <section class="chapter0">
+        <img src="Butterfly.png" alt="나비" class="Butterfly">
+        <div class="story">
+            <p class="message">[ 평화로운 일상 ]</p>
+        </div>
+    </section>
+
+    <section class="chapter1">
+        <div class="story1">
+            <p class="message1">[ 나비를 따라 들어온 산속 ]</p>
+        </div>
+    </section>
+
+    <section class="chapter2">
+        <div class="effect2"></div>
+        <div class="story2">
+            <p class="message2">[ 갑자기 발생한 화재 ]</p>
+        </div>
+    </section>
+
+    <section class="chapter3">
+        <div class="effect3"></div>
+        <div class="story3">
+            <p class="message3">[ 탈출 경로가 막힌 상황 ]</p>
+        </div>
+    </section>
+
+    <section class="chapter4">
+        <div class="story4">
+            <p class="message4">[ 불을 피해 도망 ]</p>
+        </div>
+    </section>
+
+    <section class="chapter5">
+        <div class="story5">
+            <p class="message5">[ 더 이상 도망 갈 수 없는 상황 ]</p>
+        </div>
+    </section>
+
+    <section class="chapter6">
+        <div class="effect6"></div>
+        <div class="story6">
+            <p class="message6">[ 산불을 피해 아래로 도망간 상황 ]</p>
+        </div>
+    </section>
+    
+    <section class="chapter-space">
+        <div class="game">
+            <div class="game1">
+                <p>스페이스바를 연타하세요!</p>
+                <p id="jump-count" style="font-size: 48px; font-weight: bold; margin: 15px 0;">50</p>
+                <div class="timer-container">
+                    <div class="timer-bar"></div>
+                </div>
+            </div>
+            <div class="success1"><p>성공!</p></div>
+            <div class="fail1"><p>실패 ㅠㅠ</p></div>
+        </div>
+    </section>
+    
+    <section class="chapter-arrow">
+        <div class="game">
+            <div class="game2">
+                <p>화살표를 번갈아 입력하세요!</p>
+                <div class="arrow-indicator">다음 키: <span>←</span></div>
+                <div class="count-display">남은 횟수: <span id="arrow-count">50</span></div>
+                <div class="timer-container">
+                    <div class="timer-bar"></div>
+                </div>
+            </div>
+            <div class="success2"><p>성공!</p></div>
+            <div class="fail2"><p>실패 ㅠㅠ</p></div>
+        </div>
+    </section>
+
+    <section class="chapter-random">
+        <div class="game">
+            <div class="game3">
+                <p>순서대로 입력하세요</p>
+                <div class="arrow-sequence"></div>
+                <div class="timer-container">
+                    <div class="timer-bar"></div>
+                </div>
+            </div>
+            <div class="success3"><p>성공!</p></div>
+            <div class="fail3"><p>실패 ㅠㅠ</p></div>
+        </div>
+    </section>
+    <section class="Endding">
+        <div class="Text">
+            <p class="credit">
+                2025년 대한민국은 <br>
+                기록적인 산불로 붉게 물들었다.<br>
+                104,788헥타르의 산림이 불탔다.<br>
+                이는 축구장 약 67,000개 규모이며,<br>
+                서울 면적의 80%에 달하는 크기다.<br>
+            </p>
+
+            <p class="credit">
+               불은 멈추지 않았다.<br>
+                산과 들, 동물과 사람, 집과 마을을<br>
+                무참히 삼켰다.<br>
+
+                3,300명이 넘는 사람들이 삶의 터전을 잃었다.<br>
+                30명 이상의 생명이 산불 속에서 사라졌고,<br>
+                2,000세대 가까운 가정이 재로 변했다.<br>
+            </p>
+
+            <p class="credit">
+                이 비극의 원인은<br>
+                자연이 아닌, 사람이었다.
+            </p>
+
+            <p class="credit">
+                논두렁을 태우던 불씨,
+                덜 꺼진 모닥불,
+                던져진 담배꽁초 하나.
+            </p>
+
+            <p class="credit">
+                작은 방심이
+                숲 전체를 지웠다.
+            </p>
+
+            <p class="credit">
+                피난하지 못한 고령자,
+                울타리를 넘지 못한 가축,
+                숲속에 살던 수많은 생명들.
+            </p>
+
+            <p class="credit">
+                작은 방심이
+                소중한 것들도 지웠다.
+            </p>
+
+            <p class="credit">
+                화면 너머의 당신이
+                이 메시지를 끝까지 보았다면
+                이제 행동할 차례다.
+            </p>
+            
+            <p class="credit">
+                작은 불씨 하나가
+                모든 것을 태운다.
+            </p>
+
+            <p class="credit">
+                그러나
+                작은 실천 하나가
+                모든 것을 지킬 수 있다.
+            </p>
+        </div>
+    </section>
+<script>
+    // 캐릭터 선택 화면
+    let lists = document.querySelector('.character-list').querySelectorAll('li')
+
+    // 씬 전환
+    const startScreen = document.querySelector('.start');
+
+    const body = document.querySelector('.body-bg')
+    const section = document.querySelector('.choice-screen')
+    section.classList.add('hide');
+    const go = document.querySelector('.go-btn')
+
+    const chapter0 = document.querySelector('.chapter0')
+    const chapter1 = document.querySelector('.chapter1')
+    const chapter2 = document.querySelector('.chapter2')
+    const chapter3 = document.querySelector('.chapter3')
+    const chapter4 = document.querySelector('.chapter4')
+    const chapter5 = document.querySelector('.chapter5')
+    const chapter6 = document.querySelector('.chapter6')
+
+    const endingSection = document.querySelector('.Endding');
+    endingSection.style.display = 'none';
+
+    // 텍스트 박스
+    const story = document.querySelector(".story")
+    story.classList.add('hide')
+    const story1 = document.querySelector(".story1")
+    story1.classList.add('hide')
+    const story2 = document.querySelector(".story2")
+    story2.classList.add('hide')
+    const story3 = document.querySelector(".story3")
+    story3.classList.add('hide')
+    const story4 = document.querySelector(".story4")
+    story4.classList.add('hide')
+    const story5 = document.querySelector(".story5")
+    story5.classList.add('hide')
+    const story6 = document.querySelector(".story6")
+    story6.classList.add('hide')
+
+    // 나비 등장
+    const Butterfly = document.querySelector(".Butterfly")
+
+    // 효과들
+    const effect2 = document.querySelector('.effect2')
+    effect2.classList.add('hide')
+    const effect3 = document.querySelector('.effect3')
+    effect3.classList.add('hide')
+    const effect6 = document.querySelector('.effect6')
+
+    // 메시지 내용
+    const message = document.querySelector('.message')
+    const message1 = document.querySelector('.message1')
+    const message2 = document.querySelector('.message2')
+    const message3 = document.querySelector('.message3')
+    const message4 = document.querySelector('.message4')
+    const message5 = document.querySelector('.message5')
+    const message6 = document.querySelector('.message6')
+
+    let messageIndex = 0;
+    
+    const messages = [
+        "아 배고프다 밥이나 먹을까?", "움? 나비다 엄청 이쁜 나비네", "안녕? 넌 이름이 뭐야?",
+        "어디가는 거야?", "같이 가자!!!", "(나비를 따라간다.)",
+    ];
+    const messages1 = [
+        "응? 나비는 어디갔지?", "우와 여기는 어릴 때 오고 오랜만에 와보네", "사슴 친구들도 많고, 나무도 엄청 크고 멋있다.",
+        "우리 집도 좋지만 여기도 좋은 걸?", "여기서 조금 놀다 가야겠다.", "킁킁..킁...킁.....응?", "어디서 메케한 냄새가 나는데?"
+    ];
+    const messages2 = [
+        "어? 저 빨간 불은 뭐지?", "윽, 냄새가 너무 매워, 너무 뜨거워", "이게 뭐야!!!",
+        "앗 뜨거!!! 너무 뜨거워!!!", "도망가야 해!", "다들 도망쳐",
+    ];
+    const messages3 = [
+        "길이 막혔다!!!", "나무가 쓰러져서 도망갈 수가 없어, 어떡하지?", "어? 아래에 구멍이 있어 저기로 도망가야겠다.", ""
+    ];
+    const messages4 = [
+        "어디로 가야 하지????", "숨을 쉴 수 없어...", "대체 어디로 가야 하는 거야!", ""
+    ];
+    const messages5 = [
+        "윽, 더 이상은 도망갈 수 없을 거 같아", "여기서 죽고 싶지 않은데...", "더 살고 싶어......", ""
+    ];
+    const messages6 = [
+        "드디어 내려왔어...", "근데 왜 이렇게 힘들지", "몸에 힘도 안들어가고, 눈도 감기..는...데.....", ""
+    ];
+
+    // 미니게임 1 요소
+    const gameSpace = document.querySelector('.chapter-space .game');
+    const game1 = document.querySelector('.game1');
+    const success1 = document.querySelector('.success1');
+    const fail1 = document.querySelector('.fail1');
+    const jumpCountDisplay = document.getElementById('jump-count');
+    const timerBar1 = document.querySelector('.chapter-space .timer-bar');
+
+    // 미니게임 2 요소
+    const gameArrow = document.querySelector('.chapter-arrow .game');
+    const game2 = document.querySelector('.game2');
+    const success2 = document.querySelector('.success2');
+    const fail2 = document.querySelector('.fail2');
+    const arrowCountDisplay = document.getElementById('arrow-count');
+    const arrowIndicator = document.querySelector('.arrow-indicator span');
+    const timerBar2 = document.querySelector('.chapter-arrow .timer-bar');
+
+    // 미니게임 3 요소
+    const gameRandom = document.querySelector('.chapter-random .game');
+    const game3 = document.querySelector('.game3');
+    const success3 = document.querySelector('.success3'); 
+    const fail3 = document.querySelector('.fail3'); 
+    const arrowSequenceContainer = document.querySelector('.arrow-sequence');
+    const timerBar3 = document.querySelector('.chapter-random .timer-bar');
+
+    // 게임 상태 변수
+    let timer = null;
+    let gameStarted = false;
+    let gamePlayed = false;
+
+    // 미니게임 1 변수
+    let jumpcount = 50;
+    
+    // 미니게임 2 변수
+    let arrowcount = 50;
+    let expectedKey = 'ArrowLeft';
+
+    // 미니게임 3 변수
+    let currentSequence = [];
+    let sequenceIndex = 0;
+    const totalRandomArrows = 10;
+    let randomArrowTimer = null;
+
+
+    document.addEventListener('keydown', (e) => {
+        if (!gameStarted) return;
+        
+        if (game1.classList.contains('active') && e.code === 'Space') {
+            jumpcount--;
+            jumpCountDisplay.textContent = jumpcount;
+            if (jumpcount <= 0) {
+                clearTimeout(timer);
+                timerBar1.classList.remove('running-8s'); 
+                game1.classList.remove('active');
+                success1.classList.add('active'); 
+                gameStarted = false;
+            }
+        }
+
+        if (game2.classList.contains('active')) {
+            if (e.key === expectedKey || e.code === expectedKey) {
+                arrowcount--;
+                arrowCountDisplay.textContent = arrowcount;
+                expectedKey = expectedKey === 'ArrowLeft' ? 'ArrowRight' : 'ArrowLeft';
+                arrowIndicator.textContent = expectedKey === 'ArrowLeft' ? '←' : '→';
+
+                if (arrowcount <= 0) {
+                    clearTimeout(timer);
+                    timerBar2.classList.remove('running-10s');
+                    game2.classList.remove('active');
+                    success2.classList.add('active');
+                    gameStarted = false;
+                }
+            }
+        }
+
+        if (game3.classList.contains('active')) {
+            const requiredKey = currentSequence[sequenceIndex];
+            let isCorrect = false;
+
+            if (requiredKey === 'ArrowLeft' && (e.key === 'ArrowLeft' || e.code === 'ArrowLeft')) isCorrect = true;
+            else if (requiredKey === 'ArrowRight' && (e.key === 'ArrowRight' || e.code === 'ArrowRight')) isCorrect = true;
+            else if (requiredKey === 'ArrowUp' && (e.key === 'ArrowUp' || e.code === 'ArrowUp')) isCorrect = true;
+            else if (requiredKey === 'ArrowDown' && (e.key === 'ArrowDown' || e.code === 'ArrowDown')) isCorrect = true;
+
+            if (isCorrect) {
+                arrowSequenceContainer.children[sequenceIndex].style.borderColor = 'green';
+                sequenceIndex++;
+                if (sequenceIndex >= currentSequence.length) {
+                    clearTimeout(randomArrowTimer);
+                    timerBar3.classList.remove('running-10s');
+                    game3.classList.remove('active');
+                    success3.classList.add('active');
+                    gameStarted = false;
+                }
+            } else if (e.key.startsWith('Arrow')) {
+                clearTimeout(randomArrowTimer);
+                timerBar3.classList.remove('running-10s');
+                game3.classList.remove('active');
+                fail3.classList.add('active');
+                gameStarted = false;
+            }
+        }
+    });
+    
+    function goToChapter4() {
+        body.style.backgroundImage = "none";
+        body.classList.add('body2');
+        setTimeout(() => {
+            body.classList.remove('body2');
+            story4.classList.remove('hide');
+            body.style.backgroundImage = "url('https://i.pinimg.com/736x/b2/7b/f8/b27bf8a01eb86c97abe9996412944ed8.jpg')";
+            body.style.backgroundSize = "cover";
+            body.style.backgroundPosition = "center";
+        }, 2000);
+    }
+
+    function goToChapter5() {
+        body.style.backgroundImage = "none";
+        body.classList.add('body2');
+        setTimeout(() => {
+            body.classList.remove('body2');
+            story5.classList.remove('hide');
+            body.style.backgroundImage = "url('https://i.pinimg.com/736x/b2/7b/f8/b27bf8a01eb86c97abe9996412944ed8.jpg')";
+            body.style.backgroundSize = "cover";
+            body.style.backgroundPosition = "center";
+        }, 2000);
+    }
+
+    function goToChapter6() {
+        body.style.backgroundImage = "none";
+        body.classList.add('body2');
+        setTimeout(() => {
+            body.classList.remove('body2');
+            story6.classList.remove('hide'); // story6 텍스트 박스 표시
+            body.style.backgroundImage = "url('https://i.pinimg.com/736x/48/d4/e1/48d4e14e70e8170dad14a2597d3ec4ee.jpg')";
+            body.style.backgroundSize = "cover";
+            body.style.backgroundPosition = "center";
+        }, 2000);
+    }
+    
+    // --- 미니게임 1 결과 처리 ---
+    success1.addEventListener('click', () => {
+        gameSpace.classList.remove('active');
+        success1.classList.remove('active');
+        gamePlayed = false;
+        goToChapter4();
+    });
+
+    fail1.addEventListener('click', () => {
+        gameSpace.classList.remove('active');
+        fail1.classList.remove('active');
+        gamePlayed = false;
+        goToChapter4();
+    });
+    
+    // --- 미니게임 2 결과 처리 ---
+    success2.addEventListener('click', () => {
+        gameArrow.classList.remove('active');
+        success2.classList.remove('active');
+        gamePlayed = false;
+        goToChapter5();
+    });
+
+    fail2.addEventListener('click', () => {
+        gameArrow.classList.remove('active');
+        fail2.classList.remove('active');
+        gamePlayed = false;
+        goToChapter5();
+    });
+
+    // --- 미니게임 3 결과 처리 ---
+    success3.addEventListener('click', () => {
+        gameRandom.classList.remove('active');
+        success3.classList.remove('active');
+        goToChapter6();
+    });
+
+    fail3.addEventListener('click', () => {
+        gameRandom.classList.remove('active');
+        fail3.classList.remove('active');
+        goToChapter6();
+    });
+
+    // --- 캐릭터 시작 ---
+    startScreen.addEventListener('click', () => {
+        startScreen.classList.add('hide');
+        section.classList.remove('hide');
+    });
+
+    // --- 캐릭터 선택 로직 ---
+    lists.forEach(list => {
+        list.addEventListener('click', () => {
+            lists.forEach(li => li.classList.remove('select'))
+            list.classList.add('select');
+        });
+    });
+
+    go.addEventListener('click', () => {
+        if (!document.querySelector('.character-list .select')) {
+            alert("먼저 동물을 선택해주세요!");
+            return;
+        }
+        body.classList.add('body1')
+        setTimeout(() => {
+            body.classList.remove('body1')
+            story.classList.remove('hide')
+            body.style.backgroundImage = "url('https://i.pinimg.com/736x/94/21/7b/94217b85f34f2e01afed9d8732513352.jpg')";
+            body.style.backgroundSize = "cover";
+            body.style.backgroundPosition = "center";
+        }, 1000)
+        section.classList.add('hide')
+    });
+    
+    // --- 스토리 진행 로직들 ---
+    story.addEventListener('click', () => {
+        if (messageIndex < messages.length - 1) {
+            messageIndex++;
+            message.textContent = messages[messageIndex];
+            if (messageIndex === 1) Butterfly.classList.add('active');
+            if (messageIndex === 3) Butterfly.style.animation = "flyAway 4s ease-in-out forwards";
+        } else {        
+            body.style.backgroundImage = "none";
+            chapter0.classList.add('hide');
+            body.classList.add('body2');
+            setTimeout(() => {
+                body.classList.remove('body2');
+                story1.classList.remove('hide')
+                body.style.backgroundImage = "url('https://i.pinimg.com/736x/29/df/39/29df391c1356fec798a6da595ac2f500.jpg')";
+                body.style.backgroundSize = "cover";
+                body.style.backgroundPosition = "center";
+            }, 2000);
+        }
+    });
+
+    story1.addEventListener('click', () => {
+        if (messageIndex - messages.length < messages1.length - 1) {
+            messageIndex++;
+            message1.textContent = messages1[messageIndex - messages.length];
+        } else {        
+            body.style.backgroundImage = "none";
+            chapter1.classList.add('hide');
+            body.classList.add('body2');
+            setTimeout(() => {
+                body.classList.remove('body2'); 
+                story2.classList.remove('hide')
+                effect2.classList.remove('hide')
+                body.style.backgroundImage = "url('https://i.pinimg.com/736x/b8/4a/5c/b84a5c6c44793f4310320393c9330a4a.jpg')";
+                body.style.backgroundSize = "cover";
+                body.style.backgroundPosition = "center";
+            }, 2000);
+        }
+    });
+
+    story2.addEventListener('click', () => {
+        const currentMsgIdx = messageIndex - messages.length - messages1.length;
+        if (currentMsgIdx < messages2.length - 1) {
+            messageIndex++;
+            message2.textContent = messages2[currentMsgIdx + 1];
+            if (messageIndex === 14) {
+                chapter2.classList.add('shake');
+                story2.classList.add('shake');
+                effect2.style.backgroundColor = "rgba(0, 0, 0, 0.5)";
+            }
+            if (messageIndex === 16) effect2.style.backgroundColor = "rgba(255, 0, 0, 0.2)";
+            if (messageIndex === 17) effect2.style.backgroundColor = "rgba(255, 0, 0, 0.1)";
+        } else {        
+            body.style.backgroundImage = "none";
+            chapter2.classList.add('hide');
+            body.classList.add('body2');
+            setTimeout(() => {
+                body.classList.remove('body2'); 
+                story3.classList.remove('hide')
+                body.style.backgroundImage = "url('https://i.pinimg.com/736x/46/e8/b5/46e8b51685bab8c311fd0902f4652c36.jpg')";
+                body.style.backgroundSize = "cover";
+                body.style.backgroundPosition = "center";
+            }, 2000);
+        }
+    });
+
+    story3.addEventListener('click', () => {
+        const localIndex = messageIndex - messages.length - messages1.length - messages2.length;
+        if (localIndex < messages3.length -1) {
+            messageIndex++;
+            message3.textContent = messages3[localIndex + 1];
+            if (messageIndex === 21) {
+                effect3.classList.remove('hide');
+                story3.style.backgroundColor = "rgba(255,255,255,0.1)";
+            }
+        } else if (!gamePlayed) { // 미니게임 1 시작
+            gamePlayed = true;
+            gameStarted = true;
+            jumpcount = 50;
+            jumpCountDisplay.textContent = jumpcount;
+            story3.classList.add('hide');
+            effect3.classList.add('hide');
+            gameSpace.classList.add('active');
+            game1.classList.add('active');
+            
+            timerBar1.classList.remove('running-8s');
+            void timerBar1.offsetWidth;
+            timerBar1.classList.add('running-8s');
+            
+            timer = setTimeout(() => {
+                if (game1.classList.contains('active')) {
+                    game1.classList.remove('active');
+                    fail1.classList.add('active');
+                    gameStarted = false;
+                }
+            }, 8000);
+        }
+    });
+    
+    story4.addEventListener('click', () => {
+        const totalMessagesBefore = messages.length + messages1.length + messages2.length + messages3.length;
+        const localIndex = messageIndex - totalMessagesBefore;
+        if (localIndex < messages4.length - 1) {
+            messageIndex++;
+            message4.textContent = messages4[localIndex + 1];
+        } else if(!gamePlayed) { // 미니게임 2 시작
+            story4.classList.add('hide');
+            
+            arrowcount = 50;
+            arrowCountDisplay.textContent = arrowcount;
+            expectedKey = 'ArrowLeft';
+            arrowIndicator.textContent = '←';
+
+            gameStarted = true;
+            gamePlayed = true;
+
+            timerBar2.classList.remove('running-10s');
+            void timerBar2.offsetWidth; 
+            timerBar2.classList.add('running-10s');
+            
+            gameArrow.classList.add('active');
+            game2.classList.add('active');
+
+            timer = setTimeout(() => {
+                if (game2.classList.contains('active')) {
+                    game2.classList.remove('active');
+                    fail2.classList.add('active');
+                    gameStarted = false;
+                }
+            }, 10000);
+        }
+    });
+    
+    story5.addEventListener('click', () => {
+        const totalMessagesBefore = messages.length + messages1.length + messages2.length + messages3.length + messages4.length;
+        const localIndex = messageIndex - totalMessagesBefore;
+
+        if (localIndex < messages5.length - 1) {
+            messageIndex++;
+            message5.textContent = messages5[localIndex + 1];
+        } else if (!gamePlayed) {
+            story5.classList.add('hide');
+            chapter5.classList.add('hide');
+            startGame3();
+        }
+    });
+
+
+    // --- 미니게임 3 로직 ---
+    function generateRandomArrowSequence() {
+        const arrows = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'];
+        currentSequence = [];
+        arrowSequenceContainer.innerHTML = '';
+        for (let i = 0; i < totalRandomArrows; i++) {
+            const randomArrow = arrows[Math.floor(Math.random() * arrows.length)];
+            currentSequence.push(randomArrow);
+            const arrowBox = document.createElement('div');
+            arrowBox.classList.add('arrow-box');
+            arrowBox.textContent = getArrowSymbol(randomArrow);
+            arrowSequenceContainer.appendChild(arrowBox);
+        }
+        sequenceIndex = 0;
+    }
+
+    function getArrowSymbol(arrowKey) {
+        switch (arrowKey) {
+            case 'ArrowLeft': return '←';
+            case 'ArrowRight': return '→';
+            case 'ArrowUp': return '↑';
+            case 'ArrowDown': return '↓';
+            default: return '';
+        }
+    }
+
+    function startGame3() {
+        gamePlayed = true;
+        gameStarted = true;
+        generateRandomArrowSequence();
+        gameRandom.classList.add('active');
+        game3.classList.add('active');
+
+        timerBar3.classList.remove('running-10s');
+        void timerBar3.offsetWidth;
+        timerBar3.classList.add('running-10s');
+
+        randomArrowTimer = setTimeout(() => {
+            if (game3.classList.contains('active')) {
+                game3.classList.remove('active');
+                fail3.classList.add('active');
+                gameStarted = false;
+            }
+        }, 10000);
+    }
+
+    story6.addEventListener('click', () => {
+        const totalMessagesBefore = messages.length + messages1.length + messages2.length + messages3.length + messages4.length + messages5.length;
+        const localIndex = messageIndex - totalMessagesBefore;
+
+        if (localIndex < messages6.length - 1) {
+            messageIndex++;
+            message6.textContent = messages6[localIndex + 1];
+        } else {
+            // 모든 메시지가 끝나면 실행
+            story6.classList.add('hide'); // 텍스트 박스 숨기기
+            
+            // .hide 클래스를 제거하는 대신, display를 block으로 변경하여 애니메이션 시작
+            effect6.style.display = 'block'; // <<-- 이 부분이 변경됩니다.
+
+            // effect6 애니메이션(4초)이 끝난 후 엔딩 크레딧 표시
+            setTimeout(() => {
+                chapter6.classList.add('hide'); // chapter6 전체 숨기기
+                body.style.backgroundColor = 'black'; // 배경을 검은색으로
+                body.style.backgroundImage = 'none';
+                endingSection.style.display = 'flex'; // 엔딩 섹션 보이기
+
+                // 크레딧 애니메이션 총 시간 = 동작 시간(20초) + 딜레이(5초) = 25초
+                setTimeout(() => {
+                    body.style.backgroundImage = "url('https://i.pinimg.com/736x/ab/76/2e/ab762e755a5e1e5905ba0958ca978427.jpg')";
+                    // 이미지가 잘 보이도록 추가 스타일을 설정하는 것이 좋습니다.
+                    body.style.backgroundSize = 'contain';
+                    body.style.backgroundPosition = 'center';
+                }, 20000); // 25초 (25000ms) 후에 실행
+
+            }, 4000)
+        }
+    });
+</script>
+</body>
+</html>
